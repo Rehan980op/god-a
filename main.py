@@ -379,9 +379,15 @@ async def run_web_server():
     app.router.add_post('/command', handle_command)
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, '127.0.0.1', 8080)
+    
+    # Use Render's provided PORT or default to 8080
+    port = int(os.environ.get("PORT", 8080))
+    
+    # Bind to 0.0.0.0 so Render can detect the port
+    site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-    print("✓ Internal API server started at http://127.0.0.1:8080")
+    
+    print(f"✓ Internal API server started at http://0.0.0.0:{port}")
     await asyncio.Event().wait()
 
 async def MaiiiinE():
