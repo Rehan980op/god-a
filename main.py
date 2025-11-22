@@ -65,12 +65,26 @@ HOST = '0.0.0.0'
 
 BOT_API_URL = os.environ.get('BOT_API_URL', "http://127.0.0.1:8080/command")
 
+FLASK_PORT = int(os.environ.get("PORT", 5000))  # Replit का main port
+INTERNAL_API_PORT = 8080  # Internal API के लिए
+
 # Flask Routes
 @app.route('/')
 def index():
-    """Renders the main control panel page."""
     return render_template('index.html')
 
+# Internal API Server
+async def run_web_server():
+    app_web = web.Application()
+    app_web.router.add_post('/command', handle_command)
+    runner = web.AppRunner(app_web)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', INTERNAL_API_PORT)  # ✅ 0.0.0.0 use करें
+    await site.start()
+    print(f"✓ Internal API server started at http://0.0.0.0:{INTERNAL_API_PORT}")
+
+# Bot API URL Update
+BOT_API_URL = f"http://127.0.0.1:{INTERNAL_API_PORT}/command"
 @app.route('/action', methods=['POST'])
 def handle_action():
     """Handles all form submissions from the new UI."""
