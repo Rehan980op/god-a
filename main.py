@@ -57,18 +57,13 @@ Hr = {
 app = Flask(__name__)
 app.secret_key = 'asuwishmynigga'
 
+
+import os
 PORT = int(os.environ.get('PORT', 5000))
-HOST = '0.0.0.0'
-def home():
-    return "Web Panel Running Successfully 🚀"
+HOST = '0.0.0.0'  
 
-BOT_API_URL = os.environ.get(
-    'BOT_API_URL',
-    f"https://{os.environ['REPL_SLUG']}.{os.environ['REPL_OWNER']}.repl.co/command"
-)
 
-if __name__ == "__main__":
-    app.run(host=HOST, port=PORT)
+BOT_API_URL = os.environ.get('BOT_API_URL', "http://127.0.0.1:8080/command")
 
 # Flask Routes
 @app.route('/')
