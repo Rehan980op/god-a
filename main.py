@@ -1,17 +1,38 @@
-import requests , os , psutil , sys , jwt , pickle , json , binascii , time , urllib3 , base64 , datetime , re , socket , threading , ssl , pytz , aiohttp
+import requests
+import json
+from flask import Flask, render_template, request, flash, redirect, url_for
 import asyncio
+import os
+import psutil
+import sys
+import jwt
+import pickle
+import binascii
+import time
+import urllib3
+import base64
+import datetime
+import re
+import socket
+import threading
+import ssl
+import pytz
+import os
+import aiohttp
 from aiohttp import web
 from protobuf_decoder.protobuf_decoder import Parser
-from xC4 import * ; from xHeaders import *
+from xC4 import *
+from xHeaders import *
 from datetime import datetime
 from google.protobuf.timestamp_pb2 import Timestamp
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
-from Pb2 import DEcwHisPErMsG_pb2 , MajoRLoGinrEs_pb2 , PorTs_pb2 , MajoRLoGinrEq_pb2 , sQ_pb2 , Team_msg_pb2
+from Pb2 import DEcwHisPErMsG_pb2, MajoRLoGinrEs_pb2, PorTs_pb2, MajoRLoGinrEq_pb2, sQ_pb2, Team_msg_pb2
 from cfonts import render, say
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# Global variables
 online_writer = None
 whisper_writer = None
 bot_state = {
@@ -32,6 +53,88 @@ Hr = {
     'X-GA': "v1 1",
     'ReleaseVersion': "OB51"}
 
+# Flask App Setup
+app = Flask(__name__)
+app.secret_key = 'asuwishmynigga'
+
+# Render environment variables se port aur host lein
+import os
+PORT = int(os.environ.get('PORT', 5000))
+HOST = '0.0.0.0'  # Render ke liye required
+
+# Bot API URL bhi environment variable se lein
+BOT_API_URL = os.environ.get('BOT_API_URL', "http://127.0.0.1:8080/command")
+
+# Flask Routes
+@app.route('/')
+def index():
+    """Renders the main control panel page."""
+    return render_template('index.html')
+
+@app.route('/action', methods=['POST'])
+def handle_action():
+    """Handles all form submissions from the new UI."""
+    try:
+        action = request.form.get('action')
+        payload_str = request.form.get('payload')
+        
+        if not action or payload_str is None:
+            flash('Invalid request from client.', 'danger')
+            return redirect(url_for('index'))
+
+        bot_payload = {'action': action}
+        
+        data = json.loads(payload_str)
+
+        if action == 'emote':
+            bot_payload.update(data)
+            if not bot_payload.get('emote_id') or not bot_payload.get('player_ids'):
+                raise ValueError("Emote ID and Player IDs are required.")
+            flash(f"Sending emote {bot_payload['emote_id']} to {len(bot_payload['player_ids'])} player(s)...", 'success')
+
+        elif action == 'emote_batch':
+            if not isinstance(data, list):
+                raise ValueError("A list of assignments is required for emote_batch.")
+            bot_payload['assignments'] = data
+            flash(f"Sending batch of {len(bot_payload['assignments'])} assigned emotes...", 'success')
+            
+        elif action == 'join_squad':
+            bot_payload.update(data)
+            if not bot_payload.get('team_code'):
+                 raise ValueError("Team Code is required.")
+            flash(f"Attempting to join squad {bot_payload.get('team_code')}...", 'success')
+
+        elif action == 'quick_invite':
+            bot_payload.update(data)
+            if not bot_payload.get('player_id'):
+                 raise ValueError("Your Main Account UID is required.")
+            flash('Creating squad and sending invite...', 'success')
+
+        elif action == 'leave_squad':
+            bot_payload.update(data)
+            flash('Telling bot to leave squad...', 'info')
+        
+        else:
+            flash(f'Unknown action: {action}', 'danger')
+            return redirect(url_for('index'))
+
+        response = requests.post(BOT_API_URL, json=bot_payload, timeout=10)
+        
+        if response.status_code == 200:
+            flash(response.json().get('message', 'Command sent successfully!'), 'success')
+        else:
+            flash(f"Error from bot: {response.status_code} - {response.json().get('error', 'Unknown error')}", 'danger')
+
+    except requests.exceptions.ConnectionError:
+        flash('Could not connect to the bot API. Is main.py running?', 'danger')
+    except (ValueError, json.JSONDecodeError) as e:
+        flash(f'Invalid data provided: {e}', 'danger')
+    except Exception as e:
+        flash(f'An unexpected error occurred: {e}', 'danger')
+
+    return redirect(url_for('index'))
+
+# Bot Functions (from main.py)
 def get_random_color():
     colors = [
         "[FF0000]", "[00FF00]", "[0000FF]", "[FFFF00]", "[FF00FF]", "[00FFFF]", "[FFFFFF]", "[FFA500]",
@@ -89,7 +192,6 @@ async def GeNeRaTeAccEss(uid , password):
             print(f"  > ERROR: Could not connect to the authentication server. Details: {e}")
             return None, None
 
-
 async def EncRypTMajoRLoGin(open_id, access_token):
     major_login = MajoRLoGinrEq_pb2.MajorLogin()
     major_login.event_time = str(datetime.now())[:-7]
@@ -140,7 +242,7 @@ async def EncRypTMajoRLoGin(open_id, access_token):
     major_login.graphics_api = "OpenGLES2"
     major_login.supported_astc_bitset = 16383
     major_login.login_open_id_type = 4
-    major_login.analytics_detail = b"FwQVTgUPX1UaUllDDwcWCRBpWAUOUgsvA1snWlBaO1kFYg=="
+    major_login.analytics_detail = b"FwQVTgUPX1UaUllDDwcWCRBpWA0OUgsvA1snWlBaO1kFYg=="
     major_login.loading_time = 13564
     major_login.release_channel = "android"
     major_login.extra_info = "KqsHTymw5/5GB23YGniUYN2/q47GATrq7eFeRatf0NkwLKEMQ0PK5BKEk72dPflAxUlEBir6Vtey83XqF593qsl8hwY="
@@ -375,19 +477,13 @@ async def handle_command(request):
         return web.json_response({"status": "error", "error": str(e)}, status=500)
 
 async def run_web_server():
-    app = web.Application()
-    app.router.add_post('/command', handle_command)
-    runner = web.AppRunner(app)
+    app_web = web.Application()
+    app_web.router.add_post('/command', handle_command)
+    runner = web.AppRunner(app_web)
     await runner.setup()
-    
-    # Use Render's provided PORT or default to 8080
-    port = int(os.environ.get("PORT", 8080))
-    
-    # Bind to 0.0.0.0 so Render can detect the port
-    site = web.TCPSite(runner, '0.0.0.0', port)
+    site = web.TCPSite(runner, '127.0.0.1', 8080)
     await site.start()
-    
-    print(f"✓ Internal API server started at http://0.0.0.0:{port}")
+    print("✓ Internal API server started at http://127.0.0.1:8080")
     await asyncio.Event().wait()
 
 async def MaiiiinE():
@@ -484,8 +580,28 @@ async def StarTinG():
             print(f"ErroR TcP - {e} => ResTarTinG ...")
             await asyncio.sleep(5) 
 
+def run_flask():
+    """Run Flask web panel"""
+    print("God ENGINE Bot Web Panel")
+    print("Open your web browser and go to http://127.0.0.1:5000")
+    print("Make sure bot is running!")
+    app.run(host='127.0.0.1', port=5000, debug=False, use_reloader=False)
+
+async def main():
+    """Main function to run both bot and web panel"""
+    # Start bot in background
+    bot_task = asyncio.create_task(StarTinG())
+    
+    # Start Flask web panel in a separate thread
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    
+    # Wait for both to complete (they won't, since they run indefinitely)
+    await bot_task
+
 if __name__ == '__main__':
     try:
-        asyncio.run(StarTinG())
+        # Run the combined application
+        asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nBot shutting down.")
+        print("\nBot and Web Panel shutting down.") 
