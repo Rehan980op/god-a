@@ -53,17 +53,20 @@ Hr = {
     'X-GA': "v1 1",
     'ReleaseVersion': "OB51"}
 
-# Flask App Setup
+
 app = Flask(__name__)
 app.secret_key = 'asuwishmynigga'
 
-# Render environment variables se port aur host lein
-import os
 PORT = int(os.environ.get('PORT', 5000))
-HOST = '0.0.0.0'  # Render ke liye required
+HOST = '0.0.0.0'
 
-# Bot API URL bhi environment variable se lein
-BOT_API_URL = os.environ.get('BOT_API_URL', "http://127.0.0.1:8080/command")
+BOT_API_URL = os.environ.get(
+    'BOT_API_URL',
+    f"https://{os.environ['REPL_SLUG']}.{os.environ['REPL_OWNER']}.repl.co/command"
+)
+
+if __name__ == "__main__":
+    app.run(host=HOST, port=PORT)
 
 # Flask Routes
 @app.route('/')
