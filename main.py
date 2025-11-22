@@ -59,6 +59,8 @@ app.secret_key = 'asuwishmynigga'
 
 PORT = int(os.environ.get('PORT', 5000))
 HOST = '0.0.0.0'
+def home():
+    return "Web Panel Running Successfully 🚀"
 
 BOT_API_URL = os.environ.get(
     'BOT_API_URL',
