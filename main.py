@@ -53,38 +53,24 @@ Hr = {
     'X-GA': "v1 1",
     'ReleaseVersion': "OB51"}
 
-
+# Flask App Setup
 app = Flask(__name__)
 app.secret_key = 'asuwishmynigga'
 
-
+# Render environment variables se port aur host lein
 import os
-app.run(host="0.0.0.0", port=8080)
-HOST = '0.0.0.0'  
+PORT = int(os.environ.get('PORT', 5000))
+HOST = '0.0.0.0'  # Render ke liye required
 
-
+# Bot API URL bhi environment variable se lein
 BOT_API_URL = os.environ.get('BOT_API_URL', "http://127.0.0.1:8080/command")
-
-FLASK_PORT = int(os.environ.get("PORT", 5000))  # Replit का main port
-INTERNAL_API_PORT = 8080  # Internal API के लिए
 
 # Flask Routes
 @app.route('/')
 def index():
+    """Renders the main control panel page."""
     return render_template('index.html')
 
-# Internal API Server
-async def run_web_server():
-    app_web = web.Application()
-    app_web.router.add_post('/command', handle_command)
-    runner = web.AppRunner(app_web)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', INTERNAL_API_PORT)  # ✅ 0.0.0.0 use करें
-    await site.start()
-    print(f"✓ Internal API server started at http://0.0.0.0:{INTERNAL_API_PORT}")
-
-# Bot API URL Update
-BOT_API_URL = f"http://127.0.0.1:{INTERNAL_API_PORT}/command"
 @app.route('/action', methods=['POST'])
 def handle_action():
     """Handles all form submissions from the new UI."""
@@ -503,7 +489,7 @@ async def run_web_server():
 async def MaiiiinE():
     print("STARTING BOT FOR INDIA (IND) REGION")
     
-    Uid , Pw = '4209661907','C415C49E479A2281C759DE65E9E81961D2AB240B8D0A69F912EE00079B666797'
+    Uid , Pw = '4287708753','God_killer_FOJBH_BY_SPIDEERIO_GAMING_A2EEP'
     
     print("\n[STEP 1/4] Generating access token...")
     open_id , access_token = await GeNeRaTeAccEss(Uid , Pw)
