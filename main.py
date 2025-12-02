@@ -63,7 +63,7 @@ PORT = int(os.environ.get('PORT', 5000))
 HOST = '0.0.0.0'  # Render ke liye required
 
 # Bot API URL bhi environment variable se lein
-BOT_API_URL = os.environ.get('BOT_API_URL', "http://127.0.0.1:8080/command")
+BOT_API_URL = os.environ.get('BOT_API_URL', "http://0.0.0.0:8080/command")
 
 # Flask Routes
 @app.route('/')
@@ -481,9 +481,9 @@ async def run_web_server():
     app_web.router.add_post('/command', handle_command)
     runner = web.AppRunner(app_web)
     await runner.setup()
-    site = web.TCPSite(runner, '127.0.0.1', 8080)
+    site = web.TCPSite(runner, '0.0.0.0', 8080)
     await site.start()
-    print("✓ Internal API server started at http://127.0.0.1:8080")
+    print("✓ Internal API server started at http://0.0.0.0:8080")
     await asyncio.Event().wait()
 
 async def MaiiiinE():
@@ -585,7 +585,7 @@ def run_flask():
     print("God ENGINE Bot Web Panel")
     print("Open your web browser and go to http://127.0.0.1:5000")
     print("Make sure bot is running!")
-    app.run(host='127.0.0.1', port=5000, debug=False, use_reloader=False)
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
 async def main():
     """Main function to run both bot and web panel"""
